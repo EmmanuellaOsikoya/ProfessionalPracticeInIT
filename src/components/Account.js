@@ -33,7 +33,7 @@ function Account() {
                 createdAt: new Date()
             });
     
-            navigate("/explore"); // Redirect after account creation
+            navigate("/genre-selection"); // Redirect after account creation
         } catch (error) {
             setError("Invalid email or password");
         }

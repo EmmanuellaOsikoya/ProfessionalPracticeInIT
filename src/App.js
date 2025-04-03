@@ -9,6 +9,7 @@ import Account from "./components/Account"
 import Login from "./Login";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GenreSelection from "./components/GenreSelection";
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
           <Route path="/account" element={<Account/>}/>
           <Route path="/login" element={<Login/>}/>
+          <Route path="/genre-selection" element={<GenreSelection/>}/>
         </Routes>
       </Router>
     </AuthProvider>
