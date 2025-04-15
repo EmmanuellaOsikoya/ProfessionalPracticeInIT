@@ -11,6 +11,7 @@ const Profile = () => {
   const [recommendedUsers, setRecommendedUsers] = useState([]);
   const [artistMap, setArtistMap] = useState({});
   const [loading, setLoading] = useState(true);
+  const [followingUsers, setFollowingUsers] = useState([]);
   const [user] = useAuthState(auth); // Gets the current logged in user
   const navigate = useNavigate();
 
@@ -52,7 +53,7 @@ const Profile = () => {
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = onSnapshot(collection(db, 'users'), async (snapshot) => {
+      const unsubscribe = onSnapshot(collection(db, 'users'), async (snapshot) => {
       const currentUserRef = doc(db, 'users', user.uid);
       const currentUserSnap = await getDoc(currentUserRef);
       const currentUserData = currentUserSnap.data();
@@ -61,11 +62,17 @@ const Profile = () => {
       const currentFollowing = currentUserData.following || [];
 
       const recommended = [];
+      const followed = [];
+
       snapshot.forEach((docSnap) => {
         const otherUser = docSnap.data();
-        if (!docSnap.id === user.uid) return; // Skip self
+        const otherUid = docSnap.id;
+        if (otherUid.uid === user.uid) return; // Skip self
 
         const sharedArtists = otherUser.favoriteArtists?.filter((artistId) => currentFavorites.includes(artistId)) || [];
+
+        const otherUserFollowing = otherUser.following || [];
+
         if (sharedArtists.length > 0) {
           recommended.push({
             uid: docSnap.id,
@@ -73,11 +80,21 @@ const Profile = () => {
             photoURL: otherUser.photoURL || '',
             sharedArtists,
             isFollowing: currentFollowing.includes(docSnap.id),
+            followsYou: otherUserFollowing.includes(user.uid),
           });
         }
-      });
+      
+      if (currentFollowing.includes(otherUid)) {
+        followed.push({
+          uid: otherUid,
+          name: otherUser.name || 'Unknown',
+          photoURL: otherUser.photoURL || '',
+        });
+      }
+    });
 
       setRecommendedUsers(recommended);
+      setFollowingUsers(followed);
     });
 
     return () => unsubscribe();
@@ -175,6 +192,29 @@ const Profile = () => {
           </div>
         ))}
       </div>
+
+      <h3>Following</h3>
+      {followingUsers.length === 0 ? (
+        <p>You’re not following anyone yet.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {followingUsers.map((fUser) => (
+            <div key={fUser.uid} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {fUser.photoURL && (
+                  <img
+                    src={fUser.photoURL}
+                    alt={`${fUser.name}'s profile`}
+                    style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                  />
+                )}
+                <p><strong>{fUser.name}</strong></p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
     </div>
   );
 };
