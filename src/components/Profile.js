@@ -76,7 +76,7 @@ const Profile = () => {
         if (sharedArtists.length > 0) {
           recommended.push({
             uid: docSnap.id,
-            name: otherUser.name || 'Unknown',
+            name: otherUser.name || otherUser.displayName || otherUser.email || 'No name',
             photoURL: otherUser.photoURL || '',
             sharedArtists,
             isFollowing: currentFollowing.includes(docSnap.id),
@@ -87,7 +87,7 @@ const Profile = () => {
       if (currentFollowing.includes(otherUid)) {
         followed.push({
           uid: otherUid,
-          name: otherUser.name || 'Unknown',
+          name: otherUser.name || otherUser.displayName || otherUser.email || 'No name',
           photoURL: otherUser.photoURL || '',
         });
       }
