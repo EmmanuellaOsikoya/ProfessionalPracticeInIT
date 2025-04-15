@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom'; // At the top of the file
 
 // This component fetches and displays a list of popular artists from Spotify
 const ArtistSelection = () => {
@@ -19,6 +20,8 @@ const ArtistSelection = () => {
     );
   };
 
+  const navigate = useNavigate();
+
   // Function that is called when the user picks "Save selection"
   const handleSave = async () => {
     const user = auth.currentUser;
@@ -29,6 +32,7 @@ const ArtistSelection = () => {
           favoriteArtists: selectedArtists, // This saves the selected artist IDs
         });
         alert('Artists saved successfully!');
+        navigate('/profile'); // Redirects to profile page
       } catch (err) {
         console.error('Error saving artists:', err);
       }
