@@ -63,16 +63,16 @@ const Profile = () => {
       const recommended = [];
       snapshot.forEach((docSnap) => {
         const otherUser = docSnap.data();
-        if (otherUser.uid === user.uid) return; // Skip self
+        if (!docSnap.id === user.uid) return; // Skip self
 
         const sharedArtists = otherUser.favoriteArtists?.filter((artistId) => currentFavorites.includes(artistId)) || [];
         if (sharedArtists.length > 0) {
           recommended.push({
-            uid: otherUser.uid,
+            uid: docSnap.id,
             name: otherUser.name || 'Unknown',
             photoURL: otherUser.photoURL || '',
             sharedArtists,
-            isFollowing: currentFollowing.includes(otherUser.uid),
+            isFollowing: currentFollowing.includes(docSnap.id),
           });
         }
       });
@@ -93,6 +93,13 @@ const Profile = () => {
   };
 
   const toggleFollow = async (targetUid, isFollowing) => {
+    if (!targetUid) {
+      console.error('targetUid is undefined');
+      return;
+    }
+  
+    console.log(`Toggling follow for: ${targetUid}, isFollowing: ${isFollowing}`);
+  
     const currentUserRef = doc(db, 'users', user.uid);
     try {
       await updateDoc(currentUserRef, {
@@ -102,6 +109,7 @@ const Profile = () => {
       console.error('Error updating follow status:', error);
     }
   };
+  
 
 
   if (loading) return <p>Loading profile...</p>;
