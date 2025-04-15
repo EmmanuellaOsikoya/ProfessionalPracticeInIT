@@ -1,5 +1,3 @@
-import Header from "./components/Header";
-import Footer from "./components/Footer";
 import Main from "./components/Main";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navigation from "./components/Navigation";
@@ -9,7 +7,7 @@ import Account from "./components/Account"
 import Login from "./Login";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import GenreSelection from "./components/GenreSelection";
+import ArtistSelection from "./components/ArtistSelection";
 
 
 function App() {
@@ -23,7 +21,7 @@ function App() {
           <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
           <Route path="/account" element={<Account/>}/>
           <Route path="/login" element={<Login/>}/>
-          <Route path="/genre-selection" element={<GenreSelection/>}/>
+          <Route path="/artist-selection" element={<ArtistSelection/>}/>
         </Routes>
       </Router>
     </AuthProvider>
