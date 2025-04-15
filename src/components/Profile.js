@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
@@ -8,7 +8,8 @@ import { signOut } from 'firebase/auth';
 // Profile component that shows the user's favourite artists after they've selected them
 const Profile = () => {
   const [artists, setArtists] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
+  const [recommendedUsers, setRecommendedUsers] = useState([]);
+  const [artistMap, setArtistMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [user] = useAuthState(auth); // Gets the current logged in user
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Profile = () => {
 
 
   useEffect(() => {
-    const fetchUserArtistsAndRecommendations = async () => {
+    const fetchUserArtists = async () => {
       const user = auth.currentUser;
       if (user) {
         const userRef = doc(db, 'users', user.uid);
@@ -34,45 +35,76 @@ const Profile = () => {
         const artistData = await artistRes.json();
         setArtists(artistData.artists);
 
-        // Fetch all users from Firestore
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        const recommendedUsers = [];
-
-        usersSnapshot.forEach((docSnap) => {
-          const otherUser = docSnap.data();
-          if (docSnap.id !== user.uid && otherUser.favoriteArtists) {
-            const sharedArtists = otherUser.favoriteArtists.filter((id) => userArtistIds.includes(id));
-            if (sharedArtists.length > 0) {
-              recommendedUsers.push({
-                uid: docSnap.id,
-                email: otherUser.email || 'No email',
-                sharedArtists,
-              });
-            }
-          }
+        // Create map for artist ID to name
+        const idToName = {};
+        artistData.artists.forEach((artist) => {
+          idToName[artist.id] = artist.name;
         });
+        setArtistMap(idToName);
 
-        recommendedUsers.sort((a, b) => b.sharedArtists.length - a.sharedArtists.length);
-        setRecommendations(recommendedUsers);
         setLoading(false);
       }
     };
 
-    fetchUserArtistsAndRecommendations();
-  }, [user, navigate]);
+    fetchUserArtists();
+  }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
 
-  if (loading) return <p>Loading profile...</p>;
+    const unsubscribe = onSnapshot(collection(db, 'users'), async (snapshot) => {
+      const currentUserRef = doc(db, 'users', user.uid);
+      const currentUserSnap = await getDoc(currentUserRef);
+      const currentUserData = currentUserSnap.data();
 
-  // Logs out the user and redirects to login
+      const currentFavorites = currentUserData.favoriteArtists || [];
+      const currentFollowing = currentUserData.following || [];
+
+      const recommended = [];
+      snapshot.forEach((docSnap) => {
+        const otherUser = docSnap.data();
+        if (otherUser.uid === user.uid) return; // Skip self
+
+        const sharedArtists = otherUser.favoriteArtists?.filter((artistId) => currentFavorites.includes(artistId)) || [];
+        if (sharedArtists.length > 0) {
+          recommended.push({
+            uid: otherUser.uid,
+            name: otherUser.name || 'Unknown',
+            photoURL: otherUser.photoURL || '',
+            sharedArtists,
+            isFollowing: currentFollowing.includes(otherUser.uid),
+          });
+        }
+      });
+
+      setRecommendedUsers(recommended);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Firebase sign-out
-      navigate('/login'); // Go back to login page
+      await signOut(auth);
+      navigate('/login');
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
+
+  const toggleFollow = async (targetUid, isFollowing) => {
+    const currentUserRef = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(currentUserRef, {
+        following: isFollowing ? arrayRemove(targetUid) : arrayUnion(targetUid),
+      });
+    } catch (error) {
+      console.error('Error updating follow status:', error);
+    }
+  };
+
+
+  if (loading) return <p>Loading profile...</p>;
 
   return (
     <div style={{ padding: '20px' }}>
@@ -112,21 +144,29 @@ const Profile = () => {
         ))}
       </div>
 
-      <h3 style={{ marginTop: '40px' }}>Recommended Users With Similar Taste</h3>
-      {recommendations.length === 0 ? (
-        <p>No recommendations yet. Try selecting more artists!</p>
-      ) : (
-        <ul>
-          {recommendations.map((rec) => (
-            <li key={rec.uid} style={{ marginBottom: '12px' }}>
-              <strong>{rec.email}</strong><br />
-              Shared Artists: {rec.sharedArtists.length} <br />
-              IDs: {rec.sharedArtists.join(', ')} <br />
-              <button disabled style={{ marginTop: '4px' }}>Follow (Coming soon)</button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <h3>Recommended Users (Shared Taste!)</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {recommendedUsers.map((recUser) => (
+          <div key={recUser.uid} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {recUser.photoURL && (
+                <img
+                  src={recUser.photoURL}
+                  alt={`${recUser.name}'s profile`}
+                  style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                />
+              )}
+              <div>
+                <p><strong>{recUser.name}</strong></p>
+                <p>Shared Artists: {recUser.sharedArtists.map((id) => artistMap[id] || id).join(', ')}</p>
+              </div>
+              <button onClick={() => toggleFollow(recUser.uid, recUser.isFollowing)}>
+                {recUser.isFollowing ? 'Unfollow' : 'Follow'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
