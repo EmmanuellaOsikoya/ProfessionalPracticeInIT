@@ -16,6 +16,7 @@ function App() {
       <Router>
         <Navigation/>
         <Routes>
+          <Route path="/" element={<Account/>} />
           <Route path="/home" element={<ProtectedRoute><Main/></ProtectedRoute>}/>
           <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
           <Route path="/create" element={<ProtectedRoute><Create /></ProtectedRoute>} />
