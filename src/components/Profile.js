@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
 
 // Profile component that shows the user's favourite artists after they've selected them
 const Profile = () => {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user] = useAuthState(auth); // Gets the current logged in user
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserArtists = async () => {
@@ -35,13 +40,44 @@ const Profile = () => {
     };
 
     fetchUserArtists();
-  }, []);
+  }, [user, navigate]);
 
   if (loading) return <p>Loading profile...</p>;
 
+  // Logs out the user and redirects to login
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Firebase sign-out
+      navigate('/login'); // Go back to login page
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
+
+    <h2>
+      Welcome, {user?.displayName || user?.email || 'user'}!
+    </h2>
+
       <h2>Your Favorite Artists</h2>
+
+      <button
+      onClick={handleLogout}
+      style={{
+        marginBottom: '20px',
+        padding: '10px 20px',
+        backgroundColor: '#ff4d4d',
+        color: 'white',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+      }}
+    >
+      Log Out
+    </button>
+
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
         {artists.map((artist) => (
           <div key={artist.id} style={{ width: '150px', textAlign: 'center' }}>
