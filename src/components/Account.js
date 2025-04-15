@@ -2,8 +2,7 @@
 import { useState } from "react";
 import { db, auth } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, doc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 function Account() {
@@ -12,7 +11,7 @@ function Account() {
     const [passWord, setPassWord] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [emailAddress, setEmailAddress] = useState('');
-    const [error, setError] = useState('');
+    const [setError] = useState('');
     const navigate = useNavigate();
 
     const submit = async (e) => {
