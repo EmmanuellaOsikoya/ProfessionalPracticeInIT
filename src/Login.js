@@ -16,7 +16,7 @@ function Login() {
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            navigate("/explore"); // Redirects the user to the explore page after login
+            navigate("/profile"); // Redirects the user to the user profile page after login
         } catch (error) {
             setError("Invalid email or password");
         }
