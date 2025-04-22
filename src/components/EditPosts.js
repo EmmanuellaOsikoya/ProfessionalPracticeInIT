@@ -1,60 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase'; 
+import { openDb, storeImage, getImage } from './indexDBHelper';  // Import the helper functions
 
 const EditPost = () => {
-  const { postId } = useParams(); // Get the post ID from the URL
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
-  const navigate = useNavigate();
+  const [imageId, setImageId] = useState(''); // ID for storing the image in IndexedDB
 
+  // Open the IndexedDB when the component mounts
   useEffect(() => {
-    if (!postId) {
-        console.error('No post ID provided!');
-        return;
-      }
-
-    const fetchPost = async () => {
-      const postRef = doc(db, 'posts', postId);
-      const postSnap = await getDoc(postRef);
-      
-      if (postSnap.exists()) {
-        const post = postSnap.data();
-        setContent(post.content);
-        setImageUrl(post.imageUrl || '');
-      } else {
-        console.log('No such post!');
-      }
+    const fetchDb = async () => {
+      const db = await openDb(); // Open the database
+      console.log('IndexedDB opened', db);
     };
+    fetchDb();
+  }, []);
 
-    fetchPost();
-  }, [postId]);
+  // Handle image file selection
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
+    
+    // Generate a unique imageId
+    const newImageId = new Date().getTime().toString();
+    setImageId(newImageId);
+
+    // Create a URL for image preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImageUrl(reader.result);  // Update the image URL for preview
+    };
+    reader.readAsDataURL(file);  // Convert the image to a base64 URL
+    
+    // Store the image in IndexedDB
+    const db = await openDb();
+    await storeImage(db, file, newImageId);  // Store the image as a Blob in IndexedDB
+  };
 
   const handleSave = async () => {
-    const postRef = doc(db, 'posts', postId);
+    // Save content and imageId
+    console.log('Content:', content);
+    console.log('Image ID:', imageId); // You can use this ID to fetch the image later
+    alert('Post saved successfully!');
+  };
 
-    let updatedImageUrl = imageUrl;
-
-    // Upload the new image if a file is selected
-    if (imageFile) {
-      const imageRef = ref(storage, `postImages/${postId}`);
-      const snapshot = await uploadBytes(imageRef, imageFile);
-      updatedImageUrl = await getDownloadURL(snapshot.ref);
-    }
-
-    try {
-      await updateDoc(postRef, {
-        content,
-        imageUrl: updatedImageUrl,
-      });
-      console.log('Post updated successfully!');
-      navigate(`/profile`);
-    } catch (error) {
-      console.error('Error updating post:', error);
+  const handleLoadImage = async () => {
+    const db = await openDb();
+    const imageData = await getImage(db, imageId);
+    if (imageData) {
+      const imageUrl = URL.createObjectURL(imageData.image);
+      setImageUrl(imageUrl);  // Set the image URL to display it
+    } else {
+      console.log('Image not found in IndexedDB');
     }
   };
 
@@ -70,16 +67,22 @@ const EditPost = () => {
 
       <div>
         <label>Change Image</label>
-        <input type="file" onChange={(e) => setImageFile(e.target.files[0])} />
+        <input type="file" onChange={handleImageChange} />
       </div>
 
+      {/* Display the uploaded image if available */}
       {imageUrl && (
         <div>
-          <img src={imageUrl} alt="Post" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+          <img
+            src={imageUrl}
+            alt="Post"
+            style={{ maxWidth: '100%', borderRadius: '8px' }}
+          />
         </div>
       )}
 
       <button onClick={handleSave}>Save Changes</button>
+      <button onClick={handleLoadImage}>Load Image from IndexedDB</button>
     </div>
   );
 };
