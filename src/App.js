@@ -5,7 +5,6 @@ import Create from "./components/Create";
 import Account from "./components/Account"
 import Login from "./Login";
 import { AuthProvider } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
 import ArtistSelection from "./components/ArtistSelection";
 import Profile from "./components/Profile";
 import EditPost from "./components/EditPosts";

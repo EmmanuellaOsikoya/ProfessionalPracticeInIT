@@ -1,29 +1,67 @@
-import { db, auth, storage } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { v4 as uuidv4 } from 'uuid';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
-export const createPost = async (content, imageFile) => {
+// Create a new post with optional image URL
+export const createPost = async (content, imageUrl = null) => {
   const user = auth.currentUser;
-  if (!user) return;
+  if (!user) throw new Error('User not authenticated');
 
-  let imageUrl = '';
+  const postData = {
+    userId: user.uid,
+    userName: user.displayName || user.email,
+    userPhotoURL: user.photoURL || null,
+    content: content,
+    timestamp: serverTimestamp(),
+    likes: [],
+    comments: []
+  };
 
-  if (imageFile) {
-    const imageRef = ref(storage, `postImages/${user.uid}/${uuidv4()}`);
-    const snapshot = await uploadBytes(imageRef, imageFile);
-    imageUrl = await getDownloadURL(snapshot.ref);
+  // Add the image URL if provided
+  if (imageUrl) {
+    postData.imageUrl = imageUrl;
   }
 
-  try {
-    await addDoc(collection(db, 'posts'), {
-      userId: user.uid,
-      content,
-      imageUrl,
-      timestamp: serverTimestamp(),
-    });
-    console.log('Post successfully created!');
-  } catch (error) {
-    console.error('Error creating post:', error);
+  return await addDoc(collection(db, 'posts'), postData);
+};
+
+// Update existing post with optional new image
+export const updatePost = async (postId, content, imageUrl = null) => {
+  const postRef = doc(db, 'posts', postId);
+  const postSnap = await getDoc(postRef);
+  
+  if (!postSnap.exists()) {
+    throw new Error('Post not found');
   }
+  
+  const postData = {
+    content: content,
+    lastEdited: serverTimestamp()
+  };
+  
+  // Update the image URL if provided
+  if (imageUrl !== undefined) {
+    postData.imageUrl = imageUrl;
+  }
+  
+  return await updateDoc(postRef, postData);
+};
+
+// Delete a post
+export const deletePost = async (postId) => {
+  return await deleteDoc(doc(db, 'posts', postId));
+};
+
+// Get a single post by ID
+export const getPost = async (postId) => {
+  const postRef = doc(db, 'posts', postId);
+  const postSnap = await getDoc(postRef);
+  
+  if (!postSnap.exists()) {
+    throw new Error('Post not found');
+  }
+  
+  return {
+    id: postSnap.id,
+    ...postSnap.data()
+  };
 };

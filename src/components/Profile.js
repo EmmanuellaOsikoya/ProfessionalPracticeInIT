@@ -197,7 +197,7 @@ const Profile = () => {
       </div>
 
       <h3>Your Posts</h3>
-{userPosts.length === 0 ? (
+      {userPosts.length === 0 ? (
   <p>You haven't created any posts yet.</p>
 ) : (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -211,11 +211,11 @@ const Profile = () => {
           position: 'relative',
         }}
       >
-        {post.imageUrl && (
+        {post.imageData && (
           <img
-            src={post.imageUrl}
+            src={post.imageData}
             alt="Post"
-            style={{ maxWidth: '100%', borderRadius: '8px' }}
+            style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '10px' }}
           />
         )}
         <p>{post.content}</p>
@@ -241,7 +241,7 @@ const Profile = () => {
       </div>
     ))}
   </div>
-)} 
+)}
 
       <h3>Recommended Users (Shared Taste!)</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

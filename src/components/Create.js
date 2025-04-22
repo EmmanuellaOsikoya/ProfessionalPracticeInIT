@@ -1,56 +1,69 @@
 import React, { useState } from 'react';
-import { createPost } from '../utils/fireBasePosts';
 import { useNavigate } from 'react-router-dom';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase'; // Make sure you import your Firebase storage
+import { db, auth } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const Create = () => {
   const [content, setContent] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [imageBase64, setImageBase64] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
+  // Handle image selection and convert to base64
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    // Check file size (limit to 1MB to avoid Firestore document size limits)
+    if (file.size > 1024 * 1024) {
+      alert('Image is too large. Please select an image smaller than 1MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImageBase64(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Create post with content and base64 image
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (content.trim() === '' && !imageBase64) return;
+    
+    setIsUploading(true);
+    
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('User not authenticated');
+      
+      // Create the post document with image data included
+      await addDoc(collection(db, 'posts'), {
+        userId: user.uid,
+        userName: user.displayName || user.email,
+        userPhotoURL: user.photoURL || null,
+        content: content,
+        imageData: imageBase64 || null, // Store base64 image directly in document
+        timestamp: serverTimestamp(),
+        likes: [],
+        comments: []
+      });
+      
+      setContent('');
+      setImageBase64('');
+      navigate('/profile');
+    } catch (error) {
+      console.error('Error creating post:', error);
+      alert('Failed to create post. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (content.trim() === '' && !imageFile) return;
-    
-    setUploading(true);
-    let imageUrl = null;
-    
-    try {
-      // Upload image if one is selected
-      if (imageFile) {
-        const imageRef = ref(storage, `post-images/${Date.now()}-${imageFile.name}`);
-        await uploadBytes(imageRef, imageFile);
-        imageUrl = await getDownloadURL(imageRef);
-      }
-      
-      // Create post with content and image URL
-      await createPost(content, imageUrl);
-      setContent('');
-      setImageFile(null);
-      setImagePreview('');
-      navigate('/profile');
-    } catch (error) {
-      console.error("Error creating post:", error);
-      alert("Failed to create post. Please try again.");
-    } finally {
-      setUploading(false);
-    }
+  // Remove selected image
+  const removeImage = () => {
+    setImageBase64('');
   };
 
   return (
@@ -61,58 +74,93 @@ const Create = () => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="What's on your mind?"
-          style={{ width: '100%', padding: '10px', borderRadius: '6px', minHeight: '100px' }}
+          style={{
+            width: '100%',
+            padding: '10px',
+            borderRadius: '6px',
+            minHeight: '100px',
+            marginBottom: '15px'
+          }}
         />
         
-        <div style={{ marginTop: '15px' }}>
+        <div style={{ marginBottom: '15px' }}>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif"
             onChange={handleImageChange}
             style={{ marginBottom: '10px' }}
           />
+          <div style={{ fontSize: '12px', color: '#666' }}>
+            Max file size: 1MB. Supported formats: JPEG, PNG, GIF
+          </div>
           
-          {imagePreview && (
-            <div style={{ marginTop: '10px', marginBottom: '15px' }}>
+          {imageBase64 && (
+            <div style={{ marginTop: '10px', position: 'relative' }}>
               <img
-                src={imagePreview}
+                src={imageBase64}
                 alt="Preview"
-                style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px' }}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '300px',
+                  borderRadius: '8px'
+                }}
               />
+              <button
+                type="button"
+                onClick={removeImage}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'rgba(255,0,0,0.7)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '30px',
+                  height: '30px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
             </div>
           )}
         </div>
         
         <button
           type="submit"
-          disabled={uploading}
+          disabled={isUploading}
           style={{
-            marginTop: '10px',
             padding: '10px 20px',
-            backgroundColor: uploading ? '#cccccc' : '#4CAF50',
+            backgroundColor: isUploading ? '#cccccc' : '#4CAF50',
             color: 'white',
             border: 'none',
             borderRadius: '6px',
-            cursor: uploading ? 'not-allowed' : 'pointer',
+            cursor: isUploading ? 'not-allowed' : 'pointer',
+            marginRight: '10px'
           }}
         >
-          {uploading ? 'Uploading...' : 'Post'}
+          {isUploading ? 'Posting...' : 'Post'}
+        </button>
+        
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#f0f0f0',
+            border: '1px solid #ccc',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          Cancel
         </button>
       </form>
-      
-      <button 
-        onClick={() => navigate(-1)} 
-        style={{ 
-          marginTop: '10px',
-          padding: '8px 16px',
-          backgroundColor: '#f0f0f0',
-          border: '1px solid #ccc',
-          borderRadius: '6px',
-          cursor: 'pointer'
-        }}
-      >
-        ← Go Back
-      </button>
     </div>
   );
 };
