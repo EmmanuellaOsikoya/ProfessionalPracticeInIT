@@ -141,13 +141,16 @@ const Profile = () => {
       <button
       onClick={handleLogout}
       style={{
-        marginBottom: '20px',
+        position: 'absolute',
+        top: '70px',
+        right: '20px',
         padding: '10px 20px',
         backgroundColor: '#ff4d4d',
         color: 'white',
         border: 'none',
         borderRadius: '6px',
         cursor: 'pointer',
+        zIndex: 1000,
       }}
     >
       Log Out
