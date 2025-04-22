@@ -4,6 +4,8 @@ import { doc, getDoc, collection, onSnapshot, updateDoc, arrayUnion, arrayRemove
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
+import { query, where, orderBy } from 'firebase/firestore';
+
 
 // Profile component that shows the user's favourite artists after they've selected them
 const Profile = () => {
@@ -13,6 +15,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [followingUsers, setFollowingUsers] = useState([]);
   const [user] = useAuthState(auth); // Gets the current logged in user
+  const [userPosts, setUserPosts] = useState([]);
   const navigate = useNavigate();
 
 
@@ -100,6 +103,27 @@ const Profile = () => {
     return () => unsubscribe();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+  
+    const q = query(
+      collection(db, 'posts'),
+      where('userId', '==', user.uid),
+      orderBy('timestamp', 'desc')
+    );
+  
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const posts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setUserPosts(posts);
+    });
+  
+    return () => unsubscribe();
+  }, [user]);
+  
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -171,6 +195,24 @@ const Profile = () => {
           </div>
         ))}
       </div>
+
+        <h3>Your Posts</h3>
+  {userPosts.length === 0 ? (
+    <p>You haven't created any posts yet.</p>
+  ) : (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {userPosts.map((post) => (
+        <div key={post.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
+          {post.imageUrl && (
+            <img src={post.imageUrl} alt="Post" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+          )}
+          <p>{post.content}</p>
+          <small>{post.timestamp?.toDate().toLocaleString()}</small>
+        </div>
+      ))}
+    </div>
+  )}
+
 
       <h3>Recommended Users (Shared Taste!)</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
