@@ -70,7 +70,7 @@ const Profile = () => {
       snapshot.forEach((docSnap) => {
         const otherUser = docSnap.data();
         const otherUid = docSnap.id;
-        if (otherUid.uid === user.uid) return; // Skip self
+        if (otherUid === user.uid) return; // Skip self
 
         const sharedArtists = otherUser.favoriteArtists?.filter((artistId) => currentFavorites.includes(artistId)) || [];
 
@@ -196,23 +196,52 @@ const Profile = () => {
         ))}
       </div>
 
-        <h3>Your Posts</h3>
-  {userPosts.length === 0 ? (
-    <p>You haven't created any posts yet.</p>
-  ) : (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {userPosts.map((post) => (
-        <div key={post.id} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
-          {post.imageUrl && (
-            <img src={post.imageUrl} alt="Post" style={{ maxWidth: '100%', borderRadius: '8px' }} />
-          )}
-          <p>{post.content}</p>
-          <small>{post.timestamp?.toDate().toLocaleString()}</small>
-        </div>
-      ))}
-    </div>
-  )}
-
+      <h3>Your Posts</h3>
+{userPosts.length === 0 ? (
+  <p>You haven't created any posts yet.</p>
+) : (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    {userPosts.map((post) => (
+      <div
+        key={post.id}
+        style={{
+          border: '1px solid #ccc',
+          padding: '10px',
+          borderRadius: '8px',
+          position: 'relative',
+        }}
+      >
+        {post.imageUrl && (
+          <img
+            src={post.imageUrl}
+            alt="Post"
+            style={{ maxWidth: '100%', borderRadius: '8px' }}
+          />
+        )}
+        <p>{post.content}</p>
+        <small>{post.timestamp?.toDate().toLocaleString()}</small>
+        {post.userId === user?.uid && (
+          <button
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              padding: '6px 10px',
+              backgroundColor: '#007bff',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+            onClick={() => navigate(`/edit/${post.id}`)}
+          >
+            Edit
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+)} 
 
       <h3>Recommended Users (Shared Taste!)</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
