@@ -5,7 +5,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { query, where, orderBy } from 'firebase/firestore';
-
+import { deleteDoc } from 'firebase/firestore';
 
 // Profile component that shows the user's favourite artists after they've selected them
 const Profile = () => {
@@ -16,6 +16,7 @@ const Profile = () => {
   const [followingUsers, setFollowingUsers] = useState([]);
   const [user] = useAuthState(auth); // Gets the current logged in user
   const [userPosts, setUserPosts] = useState([]);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const navigate = useNavigate();
 
 
@@ -151,7 +152,25 @@ const Profile = () => {
     }
   };
   
+  const handleDeletePost = async (postId) => {
+    // Set the post ID to confirm deletion
+    setDeleteConfirm(postId);
+  };
 
+  const confirmDeletePost = async (postId) => {
+    try {
+      await deleteDoc(doc(db, 'posts', postId));
+      // Reset confirmation state
+      setDeleteConfirm(null);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm(null);
+  };
 
   if (loading) return <p>Loading profile...</p>;
 
@@ -197,7 +216,7 @@ const Profile = () => {
       </div>
 
       <h3>Your Posts</h3>
-      {userPosts.length === 0 ? (
+{userPosts.length === 0 ? (
   <p>You haven't created any posts yet.</p>
 ) : (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -220,23 +239,88 @@ const Profile = () => {
         )}
         <p>{post.content}</p>
         <small>{post.timestamp?.toDate().toLocaleString()}</small>
-        {post.userId === user?.uid && (
+        
+        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+          {post.userId === user?.uid && (
+            <button
+              style={{
+                padding: '6px 10px',
+                backgroundColor: '#007bff',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+              onClick={() => navigate(`/edit/${post.id}`)}
+            >
+              Edit
+            </button>
+          )}
+          
           <button
             style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
               padding: '6px 10px',
-              backgroundColor: '#007bff',
+              backgroundColor: '#dc3545',
               color: '#fff',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
             }}
-            onClick={() => navigate(`/edit/${post.id}`)}
+            onClick={() => handleDeletePost(post.id)}
           >
-            Edit
+            Delete
           </button>
+        </div>
+        
+        {/* Delete confirmation dialog */}
+        {deleteConfirm === post.id && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: '8px',
+            zIndex: 5,
+            padding: '20px'
+          }}>
+            <p style={{ fontWeight: 'bold', marginBottom: '15px' }}>
+              Are you sure you want to delete this post?
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#dc3545',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => confirmDeletePost(post.id)}
+              >
+                Yes, Delete
+              </button>
+              <button
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#6c757d',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+                onClick={cancelDelete}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         )}
       </div>
     ))}
