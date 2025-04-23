@@ -217,7 +217,65 @@ const Profile = () => {
         ))}
       </div>
 
-      <h3>Your Posts</h3>
+      <h3>Following</h3>
+      {followingUsers.length === 0 ? (
+        <p>You’re not following anyone yet.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '16px' }}>
+          {followingUsers.map((fUser) => (
+            <div key={fUser.uid} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {fUser.photoURL && (
+                  <img src={fUser.photoURL} alt={`${fUser.name}'s profile`} style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
+                )}
+                <p><strong>{fUser.name}</strong></p>
+                <button
+                onClick={() => navigate(`/chat/${fUser.uid}`)}
+                style={{
+                  marginLeft: 'auto',
+                  padding: '6px 10px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Chat
+              </button>
+
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h3>Recommended Users</h3>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '16px' }}>
+        {recommendedUsers.map((recUser) => (
+          <div key={recUser.uid} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {recUser.photoURL && (
+                <img
+                  src={recUser.photoURL}
+                  alt={`${recUser.name}'s profile`}
+                  style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+                />
+              )}
+              <div>
+                <p><strong>{recUser.name}</strong></p>
+                <p>Shared Artists: {recUser.sharedArtists.map((id) => artistMap[id] || id).join(', ')}</p>
+              </div>
+              <button onClick={() => toggleFollow(recUser.uid, recUser.isFollowing)}>
+                {recUser.isFollowing ? 'Unfollow' : 'Follow'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+
+<h3>Your Posts</h3>
 {userPosts.length === 0 ? (
   <p>You haven't created any posts yet.</p>
 ) : (
@@ -328,63 +386,6 @@ const Profile = () => {
     ))}
   </div>
 )}
-
-      <h3>Recommended Users (Shared Taste!)</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {recommendedUsers.map((recUser) => (
-          <div key={recUser.uid} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {recUser.photoURL && (
-                <img
-                  src={recUser.photoURL}
-                  alt={`${recUser.name}'s profile`}
-                  style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                />
-              )}
-              <div>
-                <p><strong>{recUser.name}</strong></p>
-                <p>Shared Artists: {recUser.sharedArtists.map((id) => artistMap[id] || id).join(', ')}</p>
-              </div>
-              <button onClick={() => toggleFollow(recUser.uid, recUser.isFollowing)}>
-                {recUser.isFollowing ? 'Unfollow' : 'Follow'}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <h3>Following</h3>
-      {followingUsers.length === 0 ? (
-        <p>You’re not following anyone yet.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {followingUsers.map((fUser) => (
-            <div key={fUser.uid} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {fUser.photoURL && (
-                  <img src={fUser.photoURL} alt={`${fUser.name}'s profile`} style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
-                )}
-                <p><strong>{fUser.name}</strong></p>
-                <button
-                onClick={() => navigate(`/chat/${fUser.uid}`)}
-                style={{
-                  marginLeft: 'auto',
-                  padding: '6px 10px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                Chat
-              </button>
-
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
 {chatUser && (
   <div style={{ marginTop: '30px' }}>
