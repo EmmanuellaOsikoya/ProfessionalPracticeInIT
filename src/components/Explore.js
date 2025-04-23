@@ -3,12 +3,16 @@ import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const Explore = () => {
+  // This stores all the posts we're going to fetch from Firestore
   const [posts, setPosts] = useState([]);
+  // Shows a loading state while the data is being fetched
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // This gets the post in order of newest to oldest
     const q = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
 
+    // Gives us real-time updates from Firestore
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedPosts = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -21,6 +25,7 @@ const Explore = () => {
     return () => unsubscribe();
   }, []);
 
+  // If it's still loading a message will be displayed on the screen
   if (loading) {
     return (
       <div style={{ padding: '20px' }}>
@@ -82,7 +87,6 @@ const Explore = () => {
                 <strong>{post.userName}</strong>
               </div>
               
-              {/* Display either imageData (base64) or imageUrl (storage url) */}
               {post.imageData && (
                 <img 
                   src={post.imageData} 

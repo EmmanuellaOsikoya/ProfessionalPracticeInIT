@@ -11,7 +11,7 @@ const EditPost = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load post data
+  // Loads the post data from Firestore when the postId changes
   useEffect(() => {
     const fetchPost = async () => {
       try {
@@ -19,12 +19,12 @@ const EditPost = () => {
         const postSnap = await getDoc(postRef);
         
         if (postSnap.exists()) {
-          const postData = postSnap.data();
+          const postData = postSnap.data(); // Extracts the post content and image
           setContent(postData.content || '');
           setImageBase64(postData.imageData || '');
         } else {
           alert('Post not found');
-          navigate('/profile');
+          navigate('/profile'); // If the post doesn't exist the user gets redirected back to the profile
         }
       } catch (error) {
         console.error('Error loading post:', error);
@@ -37,12 +37,12 @@ const EditPost = () => {
     fetchPost();
   }, [postId, navigate]);
 
-  // Handle image selection
+  // Handles image selection
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     
-    // Check file size (limit to 1MB)
+    // Checks the file size limit to 1MB due to Firestore limitations
     if (file.size > 1024 * 1024) {
       alert('Image is too large. Please select an image smaller than 1MB.');
       return;
@@ -55,12 +55,12 @@ const EditPost = () => {
     reader.readAsDataURL(file);
   };
 
-  // Remove image
+  // Removes the image
   const removeImage = () => {
     setImageBase64('');
   };
 
-  // Update post
+  // Updates the post
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (content.trim() === '' && !imageBase64) {
@@ -75,10 +75,10 @@ const EditPost = () => {
       await updateDoc(postRef, {
         content: content,
         imageData: imageBase64,
-        lastEdited: serverTimestamp()
+        lastEdited: serverTimestamp() // Update the timestamp for edit
       });
       
-      navigate('/profile');
+      navigate('/profile'); // After the post has been saved they get redireted back to the profile page
     } catch (error) {
       console.error('Error updating post:', error);
       alert('Failed to update post');
@@ -87,6 +87,7 @@ const EditPost = () => {
     }
   };
 
+  // Shows loading message while fetching post data
   if (loading) {
     return <div style={{ padding: '20px' }}>Loading post...</div>;
   }

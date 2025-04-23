@@ -21,8 +21,7 @@ const Profile = () => {
   const [chatUser, setChatUser] = useState(null);
   const navigate = useNavigate();
 
-
-
+  // Gets the users favourite saved artists from Firestore and fetches their Spotify data
   useEffect(() => {
     const fetchUserArtists = async () => {
       const user = auth.currentUser;
@@ -32,7 +31,7 @@ const Profile = () => {
         const userData = userSnap.data();
         const userArtistIds = userData?.favoriteArtists || [];
 
-        // Fetch Spotify artist details
+        // Fetches Spotify artist details
         const token = await getSpotifyAccessToken();
         const artistRes = await fetch(`https://api.spotify.com/v1/artists?ids=${userArtistIds.join(',')}`, {
           headers: {
@@ -42,7 +41,7 @@ const Profile = () => {
         const artistData = await artistRes.json();
         setArtists(artistData.artists);
 
-        // Create map for artist ID to name
+        // Creates a map for artist ID to name
         const idToName = {};
         artistData.artists.forEach((artist) => {
           idToName[artist.id] = artist.name;
@@ -56,6 +55,7 @@ const Profile = () => {
     fetchUserArtists();
   }, [user]);
 
+  // This useEffect listens fro other users in the system and determines which users to recommend based on their shared favourite artists
   useEffect(() => {
     if (!user) return;
 
@@ -73,7 +73,7 @@ const Profile = () => {
       snapshot.forEach((docSnap) => {
         const otherUser = docSnap.data();
         const otherUid = docSnap.id;
-        if (otherUid === user.uid) return; // Skip self
+        if (otherUid === user.uid) return; // Skips self so you don't get recommended to yourself
 
         const sharedArtists = otherUser.favoriteArtists?.filter((artistId) => currentFavorites.includes(artistId)) || [];
 
@@ -106,6 +106,7 @@ const Profile = () => {
     return () => unsubscribe();
   }, [user]);
 
+  // Gets all the posts created by the current user
   useEffect(() => {
     if (!user) return;
   
@@ -126,7 +127,7 @@ const Profile = () => {
     return () => unsubscribe();
   }, [user]);
   
-
+  // Logs out the user and redirects them to the login page
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -136,6 +137,7 @@ const Profile = () => {
     }
   };
 
+  // Follows/Unfollows another user
   const toggleFollow = async (targetUid, isFollowing) => {
     if (!targetUid) {
       console.error('targetUid is undefined');
@@ -155,14 +157,15 @@ const Profile = () => {
   };
   
   const handleDeletePost = async (postId) => {
-    // Set the post ID to confirm deletion
+    // Sets up the post ID to confirm deletion
     setDeleteConfirm(postId);
   };
 
+  // Actually deletes the post
   const confirmDeletePost = async (postId) => {
     try {
       await deleteDoc(doc(db, 'posts', postId));
-      // Reset confirmation state
+      // Resets the confirmation state
       setDeleteConfirm(null);
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -170,10 +173,12 @@ const Profile = () => {
     }
   };
 
+  // Cancels the deletion
   const cancelDelete = () => {
     setDeleteConfirm(null);
   };
-
+ 
+  // If data is being fetched, a loading message is shown
   if (loading) return <p>Loading profile...</p>;
 
   return (
@@ -364,7 +369,6 @@ const Profile = () => {
           </button>
         </div>
         
-        {/* Delete confirmation dialog */}
         {deleteConfirm === post.id && (
           <div style={{
             position: 'absolute',

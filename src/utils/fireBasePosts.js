@@ -1,7 +1,7 @@
 import { collection, addDoc, serverTimestamp, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
-// Create a new post with optional image URL
+// Creates a new post with optional image URL
 export const createPost = async (content, imageUrl = null) => {
   const user = auth.currentUser;
   if (!user) throw new Error('User not authenticated');
@@ -16,7 +16,7 @@ export const createPost = async (content, imageUrl = null) => {
     comments: []
   };
 
-  // Add the image URL if provided
+  // Adds the image URL if provided
   if (imageUrl) {
     postData.imageUrl = imageUrl;
   }
@@ -24,7 +24,7 @@ export const createPost = async (content, imageUrl = null) => {
   return await addDoc(collection(db, 'posts'), postData);
 };
 
-// Update existing post with optional new image
+// Updates the existing post with optional new image
 export const updatePost = async (postId, content, imageUrl = null) => {
   const postRef = doc(db, 'posts', postId);
   const postSnap = await getDoc(postRef);
@@ -38,7 +38,7 @@ export const updatePost = async (postId, content, imageUrl = null) => {
     lastEdited: serverTimestamp()
   };
   
-  // Update the image URL if provided
+  // Updates the image URL if provided
   if (imageUrl !== undefined) {
     postData.imageUrl = imageUrl;
   }
@@ -46,12 +46,12 @@ export const updatePost = async (postId, content, imageUrl = null) => {
   return await updateDoc(postRef, postData);
 };
 
-// Delete a post
+// Deletes a post
 export const deletePost = async (postId) => {
   return await deleteDoc(doc(db, 'posts', postId));
 };
 
-// Get a single post by ID
+// Gets a single post by ID
 export const getPost = async (postId) => {
   const postRef = doc(db, 'posts', postId);
   const postSnap = await getDoc(postRef);

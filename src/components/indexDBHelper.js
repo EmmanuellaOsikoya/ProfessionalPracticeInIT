@@ -1,9 +1,9 @@
-// Open or create the IndexedDB database
+// Opens or creates the IndexedDB database
 export const openDb = () => {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open('imageDB', 1);
   
-      // Create the object store if it doesn't exist
+      // Creates the object store if it doesn't exist
       request.onupgradeneeded = (e) => {
         const db = e.target.result;
         if (!db.objectStoreNames.contains('images')) {
@@ -22,14 +22,14 @@ export const openDb = () => {
     });
   };
   
-  // Store an image in the IndexedDB
+  // Stores an image in the IndexedDB
   export const storeImage = (db, imageFile, imageId) => {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('images', 'readwrite');
       const store = transaction.objectStore('images');
       const imageData = {
         id: imageId,
-        image: imageFile, // Store image as Blob
+        image: imageFile, // Stores an image as a Blob
       };
   
       const request = store.put(imageData);
@@ -43,7 +43,7 @@ export const openDb = () => {
     });
   };
   
-  // Retrieve an image from the IndexedDB by id
+  // Retrieves an image from the IndexedDB by id
   export const getImage = (db, imageId) => {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('images', 'readonly');
