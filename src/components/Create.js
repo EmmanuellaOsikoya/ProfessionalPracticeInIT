@@ -4,41 +4,42 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const Create = () => {
+  // State variables to manage the content an images that will be posted to the explore page on MelodyMatch
   const [content, setContent] = useState('');
   const [imageBase64, setImageBase64] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
-  // Handle image selection and convert to base64
+  // Handles the image selection and converts it to base64 for storage in Firestore as there is a limited amount of space
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     
-    // Check file size (limit to 1MB to avoid Firestore document size limits)
+    // Checks the file size limit of 1MB to avoid Firestore document size limits
     if (file.size > 1024 * 1024) {
-      alert('Image is too large. Please select an image smaller than 1MB.');
+      alert('Image is too large. Please select an image smaller than 1MB.'); // Message shown if the image is too large
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
+    const reader = new FileReader(); // FileReader instance that will read through the file upload and also convert the image
+    reader.onloadend = () => { // Then when the file is loaded, the base64 result is set
       setImageBase64(reader.result);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // The file is read as base64 data
   };
 
-  // Create post with content and base64 image
+  // Creates a post with content and base64 image and handles the post submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (content.trim() === '' && !imageBase64) return;
     
-    setIsUploading(true);
+    setIsUploading(true); // This disables the upload button as the uploading state is set to true
     
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error('User not authenticated');
+      const user = auth.currentUser; // gets the current authenticated user
+      if (!user) throw new Error('User not authenticated'); // If there is no user and error is thrown
       
-      // Create the post document with image data included
+      // Adds the post to Firestore with the user's info, content, image and the timestamp of when it was posted
       await addDoc(collection(db, 'posts'), {
         userId: user.uid,
         userName: user.displayName || user.email,
@@ -46,10 +47,9 @@ const Create = () => {
         content: content,
         imageData: imageBase64 || null, // Store base64 image directly in document
         timestamp: serverTimestamp(),
-        likes: [],
-        comments: []
       });
       
+      // Clears the form and brings the user to the profile page after the post was successfully created
       setContent('');
       setImageBase64('');
       navigate('/profile');
@@ -61,11 +61,12 @@ const Create = () => {
     }
   };
 
-  // Remove selected image
+  // Removes the selected image
   const removeImage = () => {
-    setImageBase64('');
+    setImageBase64(''); // Clears the base64 image data
   };
 
+  // Form the user will fill out to create a post on melody match
   return (
     <div style={{ padding: '20px' }}>
       <h2>Create a New Post</h2>
@@ -136,7 +137,7 @@ const Create = () => {
           disabled={isUploading}
           style={{
             padding: '10px 20px',
-            backgroundColor: isUploading ? '#cccccc' : '#4CAF50',
+            backgroundColor: isUploading ? '#cccccc' : '#5165ae',
             color: 'white',
             border: 'none',
             borderRadius: '6px',

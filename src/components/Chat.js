@@ -57,7 +57,7 @@ const Chat = ({ selectedUser }) => {
             margin: '5px 0' 
           }}>
             <span style={{ 
-              background: msg.senderId === user.uid ? '#dcf8c6' : '#eee', 
+              background: msg.senderId === user.uid ? '#d5f5f9' : '#eee', 
               padding: '8px 12px', 
               borderRadius: '18px', 
               display: 'inline-block' 
@@ -76,7 +76,15 @@ const Chat = ({ selectedUser }) => {
           placeholder="Type your message..."
           style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
         />
-        <button onClick={sendMessage} style={{ padding: '10px 20px' }}>
+        <button onClick={sendMessage} style={{
+                  marginLeft: 'auto',
+                  padding: '6px 50px',
+                  backgroundColor: '#5165ae',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}>
           Send
         </button>
       </div>

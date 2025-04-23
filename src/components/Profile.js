@@ -179,9 +179,22 @@ const Profile = () => {
   return (
     <div style={{ padding: '20px' }}>
 
-    <h2>
-      Welcome, {user?.displayName || user?.email || 'user'}!
-    </h2>
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+  {user?.photoURL && (
+    <img
+      src={user.photoURL}
+      alt="Profile"
+      style={{
+        width: '100px',
+        height: '100px',
+        borderRadius: '50%',
+        objectFit: 'cover',
+        marginBottom: '10px',
+      }}
+    />
+  )}
+  <p style={{ color: 'gray' }}>@{user?.displayName || user?.email}</p>
+  </div>
 
       <button
       onClick={handleLogout}
@@ -201,15 +214,16 @@ const Profile = () => {
       Log Out
     </button>
 
-    <h2>Your Favorite Artists</h2>
+    <h2 style={{ textAlign: 'center'}}>Your Favorite Artists</h2>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center' }}>
         {artists.map((artist) => (
           <div key={artist.id} style={{ width: '150px', textAlign: 'center' }}>
             <img
               src={artist.images[0]?.url}
               alt={artist.name}
               width="100%"
+              height = "150px"
               style={{ borderRadius: '8px' }}
             />
             <p>{artist.name}</p>
@@ -234,7 +248,7 @@ const Profile = () => {
                 style={{
                   marginLeft: 'auto',
                   padding: '6px 10px',
-                  backgroundColor: '#28a745',
+                  backgroundColor: '#5165ae',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
@@ -266,9 +280,21 @@ const Profile = () => {
                 <p><strong>{recUser.name}</strong></p>
                 <p>Shared Artists: {recUser.sharedArtists.map((id) => artistMap[id] || id).join(', ')}</p>
               </div>
-              <button onClick={() => toggleFollow(recUser.uid, recUser.isFollowing)}>
-                {recUser.isFollowing ? 'Unfollow' : 'Follow'}
-              </button>
+              <button
+              onClick={() => toggleFollow(recUser.uid, recUser.isFollowing)}
+              style={{
+                marginLeft: 'auto',
+                padding: '6px 10px',
+                backgroundColor: '#5165ae',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              {recUser.isFollowing ? 'Unfollow' : 'Follow'}
+            </button>
+
             </div>
           </div>
         ))}
@@ -292,10 +318,16 @@ const Profile = () => {
       >
         {post.imageData && (
           <img
-            src={post.imageData}
-            alt="Post"
-            style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: '10px' }}
-          />
+          src={post.imageData}
+          alt="Post"
+          style={{
+            width: '100%',
+            height: '450px',
+            objectFit: 'cover',
+            borderRadius: '8px',
+            marginBottom: '10px',
+          }}
+        />        
         )}
         <p>{post.content}</p>
         <small>{post.timestamp?.toDate().toLocaleString()}</small>

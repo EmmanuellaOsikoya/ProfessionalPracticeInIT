@@ -43,7 +43,7 @@ const ChatPage = () => {
         borderRadius: '4px',
         cursor: 'pointer'
       }}>
-        ← Back
+        Back
       </button>
       <Chat selectedUser={selectedUser} />
     </div>
