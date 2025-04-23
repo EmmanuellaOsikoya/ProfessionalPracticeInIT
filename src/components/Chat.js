@@ -4,36 +4,43 @@ import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firesto
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 const Chat = ({ selectedUser }) => {
+  // Gets the currently authenticated user
   const [user] = useAuthState(auth);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const bottomRef = useRef(null);
+  const bottomRef = useRef(null); // Reference that scrolls to the latest message
 
+  // Function that helps generate a unique chat ID based on the user IDs
   const getChatId = (uid1, uid2) => {
-    return [uid1, uid2].sort().join('_'); // Always same order
+    return [uid1, uid2].sort().join('_'); // Always the same order so that it stays consistent
   };
 
   useEffect(() => {
-    if (!selectedUser || !user) return;
+    if (!selectedUser || !user) return; // If the selected user isn't available it exits the chat early
 
     const chatId = getChatId(user.uid, selectedUser.uid);
+    // Orders the messages in order of timestamp
     const q = query(
       collection(db, 'chats', chatId, 'messages'),
       orderBy('timestamp')
     );
 
+    // This updates the message list whenever the Firestore collection changes
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setMessages(msgs);
     });
 
+    // This cleans up the listener when the component unmounts or the dependencies change
     return () => unsubscribe();
   }, [selectedUser, user]);
 
+  // sendMessage function handles sending a new message
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
 
     const chatId = getChatId(user.uid, selectedUser.uid);
+    // Adds the message to Firestore
     await addDoc(collection(db, 'chats', chatId, 'messages'), {
       senderId: user.uid,
       text: newMessage,

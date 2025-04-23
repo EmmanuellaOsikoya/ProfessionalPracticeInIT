@@ -1,12 +1,11 @@
-// Import the functions you need from the SDKs you need
+// Imports the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"; 
 import { getStorage } from 'firebase/storage';
 
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// MelodyMatch's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCmsRK2A6GxckwvNs3UqunXfy162ySj6BA",
   authDomain: "melodymatch-d5cca.firebaseapp.com",
@@ -17,7 +16,7 @@ const firebaseConfig = {
   measurementId: "G-PFTKX8PQCE"
 };
 
-// Initialize Firebase
+// Initializes Firebase so I can use the various firebase functions
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 const auth = getAuth(app);

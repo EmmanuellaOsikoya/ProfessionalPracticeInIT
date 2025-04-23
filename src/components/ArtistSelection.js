@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom'; // At the top of the file
+import { useNavigate } from 'react-router-dom'; 
 
 // This component fetches and displays a list of popular artists from Spotify
 const ArtistSelection = () => {
   const [artists, setArtists] = useState([]); 
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [loading, setLoading] = useState(true); 
-  // useState that will catch any error that might happen during the fetch
+  // UseState that will catch any error that might happen during the fetch
   const [error, setError] = useState(null); 
 
-  // This function allows the user to select their favourite artists
+  // This function allows the users to select their favourite artists
   const toggleSelection = (artistId) => {
     setSelectedArtists((prevSelected) =>
       prevSelected.includes(artistId)
@@ -39,7 +39,7 @@ const ArtistSelection = () => {
     }
   };
 
-  // These are debugging logs to make sure that the environment variables are working
+  // These are debugging logs to make sure that the environment variables are working correctly
   console.log("Spotify Client ID:", process.env.REACT_APP_SPOTIFY_CLIENT_ID);
   console.log("Spotify Client Secret:", process.env.REACT_APP_SPOTIFY_CLIENT_SECRET);
 
@@ -47,15 +47,16 @@ const ArtistSelection = () => {
     const CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
     const CLIENT_SECRET = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
   
-    if (!CLIENT_ID || !CLIENT_SECRET) {
+    if (!CLIENT_ID || !CLIENT_SECRET) { // Checks to see if the credentials are missing
       console.error('Spotify client credentials are missing!');
       return null;
     }
   
-    const authString = `${CLIENT_ID}:${CLIENT_SECRET}`;
-    const authBase64 = btoa(authString);
+    const authString = `${CLIENT_ID}:${CLIENT_SECRET}`; // This combines the client ID and secret taken from the Spotify API for basic auth
+    const authBase64 = btoa(authString); // This converts the credentials to base64 for the authorisation header
   
     try {
+      // POST request made to Spotify's token endpoint to ensure that we are given an access token
       const response = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {
@@ -65,7 +66,7 @@ const ArtistSelection = () => {
         body: 'grant_type=client_credentials',
       });
   
-      const data = await response.json();
+      const data = await response.json(); // This parses the response to the JSON file
       return data.access_token;
     } catch (error) {
       console.error('Error fetching access token:', error);
@@ -133,13 +134,14 @@ const ArtistSelection = () => {
           '1Cs0zKBU1kc0i8ypK3B9ai', // David Guetta
         ];
 
+        // Fetches the artists details from the Spotify API for web developers using the access token
         const response = await fetch(`https://api.spotify.com/v1/artists?ids=${artistIds.join(',')}`, {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`, // This includes the access token in the request header
           },
         });
 
-        const data = await response.json();
+        const data = await response.json(); // Parses the JSON response from the API
         console.log('Fetched artist data:', data.artists); // Lets the user know which artists have been fetched for debugging purposes
         if (data.artists) {
           setArtists(data.artists.filter((artist) => artist && artist.id)); // Stores the fetched artists data in state

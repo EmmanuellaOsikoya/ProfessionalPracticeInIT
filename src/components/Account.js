@@ -1,4 +1,4 @@
-//Component that is responsible for creating accounts for MelodyMatch
+// Component that is responsible for creating accounts for MelodyMatch
 import { useState } from "react";
 import { db, auth } from "../firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -6,7 +6,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 function Account() {
-    //use state is used to create state variables for each form field
+    // Use state is used to create state variables for each form field
     const [userName, setUserName] = useState('');
     const [passWord, setPassWord] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,28 +17,30 @@ function Account() {
     const submit = async (e) => {
         e.preventDefault();
     
+        // Checks to see if the passwords match each other
         if (passWord !== confirmPassword) {
             setError("Passwords do not match!");
             return;
         }
     
-        try {
+        try { // User will be created with an email and password using Firebase's authorisation API
             const userCredential = await createUserWithEmailAndPassword(auth, emailAddress, passWord);
             const user = userCredential.user;
     
+            // Stores the user data in Firestore
             await setDoc(doc(db, "users", user.uid), {
                 userName: userName,
                 email: emailAddress,
                 createdAt: new Date()
             });
     
-            navigate("/artist-selection"); // Redirect after account creation
-        } catch (error) {
+            navigate("/artist-selection"); // Redirects to the artist-selection page after account creation
+        } catch (error) { // Handles any errors that may occur during user creation
             setError("Invalid email or password");
         }
     };
 
-    //form that allows users to create a new account for to add to MelodyMatch
+    // Form that allows users to create a new account for to add to MelodyMatch
     return (
         <div className="text-center" style={{ backgroundImage: 'url(/music.jpg)', height: '100vh', backgroundSize: 'cover', backgroundPosition: 'center' }}>
             <div className="row justify-content-center align-items-center" style={{ height: '100vh' }}>
