@@ -12,6 +12,7 @@ const Navigation = () => {
                     <Nav.Link href="/profile">Home</Nav.Link>
                     <Nav.Link href="/explore">Explore</Nav.Link>
                     <Nav.Link href="/create">Create a Post</Nav.Link>
+                    <Nav.Link href="/chatpage">Chats</Nav.Link>
                 </Nav>
                 </Container>
         </Navbar>

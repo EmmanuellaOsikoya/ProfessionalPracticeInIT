@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { query, where, orderBy } from 'firebase/firestore';
 import { deleteDoc } from 'firebase/firestore';
+import Chat from './Chat';
 
 // Profile component that shows the user's favourite artists after they've selected them
 const Profile = () => {
@@ -17,6 +18,7 @@ const Profile = () => {
   const [user] = useAuthState(auth); // Gets the current logged in user
   const [userPosts, setUserPosts] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [chatUser, setChatUser] = useState(null);
   const navigate = useNavigate();
 
 
@@ -360,18 +362,50 @@ const Profile = () => {
             <div key={fUser.uid} style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {fUser.photoURL && (
-                  <img
-                    src={fUser.photoURL}
-                    alt={`${fUser.name}'s profile`}
-                    style={{ width: '50px', height: '50px', borderRadius: '50%' }}
-                  />
+                  <img src={fUser.photoURL} alt={`${fUser.name}'s profile`} style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
                 )}
                 <p><strong>{fUser.name}</strong></p>
+                <button
+                onClick={() => navigate(`/chat/${fUser.uid}`)}
+                style={{
+                  marginLeft: 'auto',
+                  padding: '6px 10px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Chat
+              </button>
+
               </div>
             </div>
           ))}
         </div>
       )}
+
+{chatUser && (
+  <div style={{ marginTop: '30px' }}>
+    <Chat selectedUser={chatUser} />
+    <button
+      style={{
+        marginTop: '10px',
+        padding: '8px 16px',
+        backgroundColor: '#6c757d',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+      }}
+      onClick={() => setChatUser(null)}
+    >
+      Close Chat
+    </button>
+  </div>
+)}
+
 
     </div>
   );

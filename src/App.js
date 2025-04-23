@@ -8,6 +8,8 @@ import { AuthProvider } from "./context/AuthContext";
 import ArtistSelection from "./components/ArtistSelection";
 import Profile from "./components/Profile";
 import EditPost from "./components/EditPosts";
+import Chat from './components/Chat';
+import ChatPage from './components/ChatPage';
 
 
 function App() {
@@ -23,7 +25,9 @@ function App() {
           <Route path="/login" element={<Login/>}/>
           <Route path="/artist-selection" element={<ArtistSelection/>}/>
           <Route path="/profile" element={<Profile />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/edit/:postId" element={<EditPost />} />
+          <Route path="/chat/:uid" element={<ChatPage />} />
         </Routes>
       </Router>
     </AuthProvider>
